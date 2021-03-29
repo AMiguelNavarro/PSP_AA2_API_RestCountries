@@ -3,6 +3,7 @@ package com.sanvalero.controller;
 import com.sanvalero.domain.Country;
 import com.sanvalero.service.CountriesService;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -26,9 +27,13 @@ public class AppController implements Initializable {
 
     public CountriesService apiService;
 
+    private ObservableList<Country> listCountries;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         apiService = new CountriesService();
+        listCountries = FXCollections.observableArrayList();
+        lvAllCountries.setItems(listCountries);
     }
 
 
@@ -37,16 +42,23 @@ public class AppController implements Initializable {
     public void getAllCountries(Event event) {
 
         lvAllCountries.getItems().clear();
-        List<Country> listAllCountries = apiService.getAllCountries()
+//        List<Country> listAllCountries = apiService.getAllCountries()
+//                .flatMap(Observable::from)
+//                .doOnCompleted(() -> System.out.println("Listado descargado"))
+//                .doOnError(throwable -> System.out.println("ERROR: " + throwable))
+//                .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
+//                .toList()
+//                .toBlocking()
+//                .first();
+//
+//        lvAllCountries.setItems(FXCollections.observableList(listAllCountries));
+
+        apiService.getAllCountries()
                 .flatMap(Observable::from)
                 .doOnCompleted(() -> System.out.println("Listado descargado"))
                 .doOnError(throwable -> System.out.println("ERROR: " + throwable))
                 .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
-                .toList()
-                .toBlocking()
-                .first();
-
-        lvAllCountries.setItems(FXCollections.observableList(listAllCountries));
+                .subscribe(country -> listCountries.add(country));
 
 
     }
