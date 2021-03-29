@@ -12,9 +12,9 @@ public interface CountriesApiService {
     @GET("/rest/v2/all")
     Observable<List<Country>> getAllCountries();
 
-    //Todos los de EEUU
+    //Todos los de la Unión Europea
     //https://restcountries.eu/rest/v2/regionalbloc/eu
     @GET("/rest/v2/regionalbloc/eu")
-    Observable<List<Country>> getAllCountriesFromEEUU();
+    Observable<List<Country>> getAllCountriesFromUE();
 
 }

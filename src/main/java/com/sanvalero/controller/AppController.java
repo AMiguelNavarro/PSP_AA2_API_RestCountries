@@ -1,21 +1,28 @@
 package com.sanvalero.controller;
 
+import com.sanvalero.domain.Country;
 import com.sanvalero.service.CountriesService;
+import javafx.collections.FXCollections;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import rx.Observable;
+import rx.Scheduler;
+import rx.schedulers.Schedulers;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.Executors;
 
 public class AppController implements Initializable {
 
-    public Button btAllCountries, btFindByName, btViewDescription, btAllFromEEUU;
+    public Button btAllCountries, btFindByName, btViewDescription, btAllFromUE;
     public TextField tfName, tfNameResult, tfCapitalResult;
-    public ListView lvAllCountries, lvByName, lvAllFromEEUU;
+    public ListView lvAllCountries, lvByName, lvAllFromUE;
     public Label lbNameSearched;
-    public ProgressIndicator pgAllCountries, pgAllFromEEUU;
+    public ProgressIndicator pgAllCountries, pgAllFromUE;
 
     public CountriesService apiService;
 
@@ -28,6 +35,19 @@ public class AppController implements Initializable {
 
     @FXML
     public void getAllCountries(Event event) {
+
+        lvAllCountries.getItems().clear();
+        List<Country> listAllCountries = apiService.getAllCountries()
+                .flatMap(Observable::from)
+                .doOnCompleted(() -> System.out.println("Listado descargado"))
+                .doOnError(throwable -> System.out.println("ERROR: " + throwable))
+                .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
+                .toList()
+                .toBlocking()
+                .first();
+
+        lvAllCountries.setItems(FXCollections.observableList(listAllCountries));
+
 
     }
 
@@ -45,7 +65,7 @@ public class AppController implements Initializable {
 
 
     @FXML
-    public void findAllFromEEUU(Event event) {
+    public void findAllFromUE(Event event) {
 
     }
 
