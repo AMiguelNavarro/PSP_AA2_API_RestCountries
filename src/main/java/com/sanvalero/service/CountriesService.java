@@ -30,4 +30,6 @@ public class CountriesService {
     public Observable<List<Country>> getAllCountries() {
         return apiService.getAllCountries();
     }
+
+    public Observable<List<Country>> getAllCountriesFromUE() { return apiService.getAllCountriesFromUE(); }
 }
