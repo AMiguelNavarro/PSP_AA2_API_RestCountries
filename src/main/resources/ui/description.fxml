@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.WebView?>
+
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="423.0" prefWidth="350.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <AnchorPane prefHeight="491.0" prefWidth="600.0">
+         <children>
+            <WebView fx:id="wbFlagImage" layoutX="15.0" layoutY="44.0" prefHeight="188.0" prefWidth="324.0" />
+            <Label fx:id="lbName" layoutX="19.0" layoutY="273.0" prefHeight="17.0" prefWidth="316.0" style="-fx-alignment: center;" text="Nombre país" textAlignment="CENTER" />
+            <Label fx:id="lbCapital" layoutX="19.0" layoutY="303.0" prefHeight="17.0" prefWidth="316.0" style="-fx-alignment: center;" text="Capital" textAlignment="CENTER" />
+            <Label fx:id="lbRegion" layoutX="19.0" layoutY="333.0" prefHeight="17.0" prefWidth="316.0" style="-fx-alignment: center;" text="Continente" textAlignment="CENTER" />
+         </children>
+      </AnchorPane>
+   </children>
+</VBox>

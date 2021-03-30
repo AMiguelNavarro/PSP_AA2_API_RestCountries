@@ -14,7 +14,8 @@ public class Country {
     public String name;
     public String capital;
     public String region;
-    public String subRegion;
+    public String subregion;
+    public String flag;
     public int population;
 
     @Override

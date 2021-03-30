@@ -1,7 +1,9 @@
 com\sanvalero\Main.class
 com\sanvalero\utils\Constants.class
+com\sanvalero\controller\DescriptionController.class
 com\sanvalero\utils\R.class
 com\sanvalero\service\CountriesApiService.class
+com\sanvalero\utils\Alerts.class
 com\sanvalero\domain\Country.class
 com\sanvalero\domain\Country$CountryBuilder.class
 com\sanvalero\service\CountriesService.class

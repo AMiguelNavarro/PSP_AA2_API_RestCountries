@@ -25,17 +25,16 @@
                   <Font size="14.0" />
                </font>
             </Text>
-            <Button fx:id="btAllCountries" layoutX="24.0" layoutY="134.0" mnemonicParsing="false" onAction="#getAllCountries" prefHeight="50.0" prefWidth="95.0" text="VER TODOS" />
-            <ListView fx:id="lvAllCountries" layoutX="24.0" layoutY="226.0" onMouseClicked="#getCountryListViewAll" prefHeight="405.0" prefWidth="257.0" />
-            <Text layoutX="24.0" layoutY="216.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Listado de todos los países de la API:" wrappingWidth="257.0">
+            <ListView fx:id="lvAllCountries" layoutX="24.0" layoutY="196.0" onMouseClicked="#getCountryListViewAll" prefHeight="435.0" prefWidth="257.0" />
+            <Text layoutX="24.0" layoutY="166.0" strokeType="OUTSIDE" strokeWidth="0.0" text="TODOS LOS PAÍSES" textAlignment="CENTER" wrappingWidth="257.0">
                <font>
-                  <Font size="14.0" />
+                  <Font name="System Bold" size="22.0" />
                </font>
             </Text>
             <Separator layoutX="307.0" layoutY="134.0" orientation="VERTICAL" prefHeight="495.0" prefWidth="8.0" />
             <Button fx:id="btFindByName" layoutX="531.0" layoutY="172.0" mnemonicParsing="false" onAction="#findByName" prefHeight="25.0" prefWidth="65.0" text="BUSCAR" />
-            <ListView fx:id="lvByName" layoutX="339.0" layoutY="226.0" prefHeight="158.0" prefWidth="257.0" />
-            <Text layoutX="339.0" layoutY="217.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Países con nombre: " wrappingWidth="128.0">
+            <ListView fx:id="lvByName" layoutX="339.0" layoutY="226.0" onMouseClicked="#getCountryListViewByName" prefHeight="158.0" prefWidth="257.0" />
+            <Text layoutX="339.0" layoutY="220.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Países que contienen: " wrappingWidth="165.0">
                <font>
                   <Font size="14.0" />
                </font>
@@ -57,13 +56,12 @@
             <TextField fx:id="tfNameResult" layoutX="385.0" layoutY="464.0" prefHeight="25.0" prefWidth="165.0" />
             <TextField fx:id="tfCapitalResult" layoutX="386.0" layoutY="527.0" prefHeight="25.0" prefWidth="165.0" />
             <Button fx:id="btViewDescription" layoutX="425.0" layoutY="572.0" mnemonicParsing="false" onAction="#viewDescription" prefHeight="50.0" prefWidth="95.0" text="VER FICHA" />
-            <Label fx:id="lbNameSearched" layoutX="468.0" layoutY="203.0" prefHeight="17.0" prefWidth="128.0" />
+            <Label fx:id="lbNameSearched" layoutX="476.0" layoutY="205.0" prefHeight="20.0" prefWidth="120.0" />
             <Label layoutX="375.0" layoutY="402.0" prefHeight="27.0" prefWidth="194.0" text="PAÍS SELECCIONADO" textAlignment="CENTER">
                <font>
                   <Font name="System Bold" size="18.0" />
                </font>
             </Label>
-            <ProgressIndicator fx:id="pgAllCountries" layoutX="153.0" layoutY="138.0" prefHeight="50.0" prefWidth="55.0" progress="0.0" />
             <ProgressIndicator fx:id="pgAllFromUE" layoutX="768.0" layoutY="137.0" prefHeight="50.0" prefWidth="55.0" progress="0.0" />
             <Text layoutX="389.0" layoutY="522.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Capital" wrappingWidth="45.0">
                <font>
