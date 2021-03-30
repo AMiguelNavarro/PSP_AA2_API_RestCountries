@@ -31,5 +31,7 @@ public class CountriesService {
         return apiService.getAllCountries();
     }
 
-    public Observable<List<Country>> getAllCountriesFromUE() { return apiService.getAllCountriesFromUE(); }
+    public Observable<List<Country>> getCountriesFromRegion(String region) {
+        return apiService.getCountriesFromRegion(region);
+    }
 }

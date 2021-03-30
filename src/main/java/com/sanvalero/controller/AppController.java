@@ -27,30 +27,35 @@ import java.util.concurrent.Executors;
 
 public class AppController implements Initializable {
 
-    public Button btFindByName, btViewDescription, btAllFromUE;
+    public Button btFindByName, btViewDescription, btRegions;
     public TextField tfName, tfNameResult, tfCapitalResult;
-    public ListView<Country> lvAllCountries, lvByName, lvAllFromUE;
-    public Label lbNameSearched;
-    public ProgressIndicator pgAllFromUE;
+    public ListView<Country> lvAllCountries, lvByName, lvAllFromRegion;
+    public Label lbNameSearched, lbRegionSelected;
+    public ProgressIndicator piCountryFromRegion;
+    public ComboBox<String> cbRegions;
 
     private CountriesService apiService;
 
     private ObservableList<Country> listAllCountries;
-    private ObservableList<Country> listCountriesFromUE;
+    private ObservableList<Country> listCountriesFromRegion;
+    private String[] listRegions = new String[] {"Africa", "Americas", "Asia", "Europe", "Oceania"};
     private Country countrySelected;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         apiService = new CountriesService();
 
-        disableProgressIndicator(true);
+        visibleProgressIndicator(false);
 
         listAllCountries = FXCollections.observableArrayList();
         lvAllCountries.setItems(listAllCountries);
         getAllCountries();
 
-        listCountriesFromUE = FXCollections.observableArrayList();
-        lvAllFromUE.setItems(listCountriesFromUE);
+        listCountriesFromRegion = FXCollections.observableArrayList();
+        lvAllFromRegion.setItems(listCountriesFromRegion);
+
+        cbRegions.setItems(FXCollections.observableArrayList(listRegions));
+        cbRegions.setValue("<Selecciona un continente>");
     }
 
 
@@ -116,23 +121,35 @@ public class AppController implements Initializable {
 
 
     /**
-     * Hace la petición a la API de buscar todos los países de la Unión Europea
+     * Hace la petición a la API según el continente que se haya seleccionado en el comboBox
      * @param event
      */
     @FXML
-    public void findAllFromUE(Event event) {
+    public void findAllFromRegion(Event event) {
 
-        lvAllFromUE.getItems().clear();
-        disableProgressIndicator(false);
+        lvAllFromRegion.getItems().clear();
+        visibleProgressIndicator(true);
+        piCountryFromRegion.setProgress(-1);
 
-        apiService.getAllCountriesFromUE()
+        String region = cbRegions.getSelectionModel().getSelectedItem();
+        if (region == null || region.equals("<Selecciona un continente>")) {
+            Alerts.showErrorAlert("Debes seleccionar un continente");
+            return;
+        }
+
+        lbRegionSelected.setText(region);
+
+
+        apiService.getCountriesFromRegion(region)
                 .flatMap(Observable::from)
-                .doOnCompleted(() -> System.out.println("Listado descargado"))
+                .doOnCompleted(() -> {
+                    System.out.println("Listado descargado");
+                    visibleProgressIndicator(false);
+                })
                 .doOnError(throwable -> System.out.println("ERROR: " + throwable))
                 .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
-                .subscribe(country -> listCountriesFromUE.add(country));
+                .subscribe(country -> listCountriesFromRegion.add(country));
 
-        disableProgressIndicator(true);
 
     }
 
@@ -161,8 +178,8 @@ public class AppController implements Initializable {
      * @param event
      */
     @FXML
-    public void getCountryListViewUE(Event event) {
-        countrySelected = lvAllFromUE.getSelectionModel().getSelectedItem();
+    public void getCountryListViewRegion(Event event) {
+        countrySelected = lvAllFromRegion.getSelectionModel().getSelectedItem();
 
         if (!validateSelectionItem()) {
             return;
@@ -220,8 +237,12 @@ public class AppController implements Initializable {
     }
 
 
-    private void disableProgressIndicator (boolean disable) {
-        pgAllFromUE.setDisable(disable);
+    /**
+     * Oculta el progressIndicator
+     * @param visible
+     */
+    private void visibleProgressIndicator(boolean visible) {
+        piCountryFromRegion.setVisible(visible);
     }
 
 
