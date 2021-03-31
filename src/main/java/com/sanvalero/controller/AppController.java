@@ -87,15 +87,15 @@ public class AppController implements Initializable {
 
         lbNameSearched.setText(name);
 
-        List<Country> lista = new ArrayList<>();
+        List<Country> listFilterByName = new ArrayList<>();
         for(Country country : listAllCountries) {
             if (country.getName().contains(name)) {
-                lista.add(country);
+                listFilterByName.add(country);
             }
         }
-        lvByName.setItems(FXCollections.observableList(lista));
+        lvByName.setItems(FXCollections.observableList(listFilterByName));
 
-        if (lista.isEmpty()) {
+        if (listFilterByName.isEmpty()) {
             Alerts.showInfoAlert("No hay ningún país con las letras: " + name);
         }
     }
@@ -183,9 +183,8 @@ public class AppController implements Initializable {
         }
 
         if (exportType.equals(Constants.ZIP)) {
-            CompletableFuture.supplyAsync(
-                    this::exportCSV)
-                    .thenAccept(this::exportZIP);
+            CompletableFuture.supplyAsync(this::exportCSV).thenAccept(this::exportZIP);
+
 //            File file = exportCSV();
 //            exportZIP(file);
 
