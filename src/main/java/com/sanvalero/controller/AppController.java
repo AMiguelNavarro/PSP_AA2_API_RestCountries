@@ -3,6 +3,7 @@ package com.sanvalero.controller;
 import com.sanvalero.domain.Country;
 import com.sanvalero.service.CountriesService;
 import com.sanvalero.utils.Alerts;
+import com.sanvalero.utils.Constants;
 import com.sanvalero.utils.R;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,32 +14,38 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import rx.Observable;
 import rx.schedulers.Schedulers;
-
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 
 public class AppController implements Initializable {
 
-    public Button btFindByName, btViewDescription, btRegions;
+    public Button btFindByName, btViewDescription, btRegions, btExport;
     public TextField tfName, tfNameResult, tfCapitalResult;
     public ListView<Country> lvAllCountries, lvByName, lvAllFromRegion;
     public Label lbNameSearched, lbRegionSelected;
     public ProgressIndicator piCountryFromRegion;
-    public ComboBox<String> cbRegions;
+    public ComboBox<String> cbRegions, cbExport;
 
     private CountriesService apiService;
 
     private ObservableList<Country> listAllCountries;
     private ObservableList<Country> listCountriesFromRegion;
-    private String[] listRegions = new String[] {"Africa", "Americas", "Asia", "Europe", "Oceania"};
+    private String[] listRegions = new String[] {Constants.REGION_AFRICA, Constants.REGION_AMERICAS, Constants.REGION_ASIA, Constants.REGION_EUROPE, Constants.REGION_OCEANIA};
+    private String[] listExportOptions = new String[] {Constants.CSV, Constants.ZIP};
     private Country countrySelected;
 
     @Override
@@ -55,7 +62,10 @@ public class AppController implements Initializable {
         lvAllFromRegion.setItems(listCountriesFromRegion);
 
         cbRegions.setItems(FXCollections.observableArrayList(listRegions));
-        cbRegions.setValue("<Selecciona un continente>");
+        cbRegions.setValue(Constants.DEFAULT_REGION);
+
+        cbExport.setItems(FXCollections.observableArrayList(listExportOptions));
+        cbExport.setValue(Constants.CSV);
     }
 
 
@@ -84,6 +94,10 @@ public class AppController implements Initializable {
             }
         }
         lvByName.setItems(FXCollections.observableList(lista));
+
+        if (lista.isEmpty()) {
+            Alerts.showInfoAlert("No hay ningún país con las letras: " + name);
+        }
     }
 
 
@@ -132,8 +146,9 @@ public class AppController implements Initializable {
         piCountryFromRegion.setProgress(-1);
 
         String region = cbRegions.getSelectionModel().getSelectedItem();
-        if (region == null || region.equals("<Selecciona un continente>")) {
+        if (region == null || region.equals(Constants.DEFAULT_REGION)) {
             Alerts.showErrorAlert("Debes seleccionar un continente");
+            visibleProgressIndicator(false);
             return;
         }
 
@@ -150,6 +165,32 @@ public class AppController implements Initializable {
                 .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
                 .subscribe(country -> listCountriesFromRegion.add(country));
 
+
+    }
+
+
+    @FXML
+    public void export(Event event) {
+
+        String exportType = cbExport.getSelectionModel().getSelectedItem();
+
+        if (exportType.equals(Constants.CSV)) {
+//            CompletableFuture.runAsync(this::exportCSV)
+//            .whenComplete((string, throwable) -> System.out.println("OK"));
+            if (exportCSV() != null) {
+                Alerts.showInfoAlert("Se ha exportado el archivo CSV correctamente");
+            }
+        }
+
+        if (exportType.equals(Constants.ZIP)) {
+            CompletableFuture.supplyAsync(
+                    this::exportCSV)
+                    .thenAccept(this::exportZIP);
+//            File file = exportCSV();
+//            exportZIP(file);
+
+
+        }
 
     }
 
@@ -259,6 +300,61 @@ public class AppController implements Initializable {
         } else {
             return true;
         }
+    }
+
+
+    private File exportCSV() {
+        File file = null;
+        try {
+            FileChooser fileChooser = new FileChooser();
+            file = fileChooser.showSaveDialog(null);
+            FileWriter fileWriter = new FileWriter(file + ".csv");
+            CSVPrinter printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withHeader("País", "Capital", "Continente", "Población"));
+
+            List<Country> countriesExportList = listAllCountries;
+
+            for(Country country : countriesExportList) {
+                printer.printRecord(
+                        country.getName(),
+                        country.getCapital(),
+                        country.getRegion(),
+                        country.getPopulation()
+                );
+            }
+
+            printer.close();
+
+        } catch (IOException e) {
+            Alerts.showErrorAlert("Error al exportar los datos en CSV");
+        }
+
+        return file;
+
+    }
+
+    private void exportZIP(File file) {
+
+        try {
+            FileOutputStream fos = new FileOutputStream(file.getAbsolutePath().concat(".zip"));
+            ZipOutputStream zos = new ZipOutputStream(fos);
+            FileInputStream fis = new FileInputStream(file.getAbsolutePath().concat(".csv"));
+            ZipEntry zipEntry = new ZipEntry(file.getName().concat(".csv"));
+
+            zos.putNextEntry(zipEntry);
+
+            byte[] bytes = new byte[1024];
+            int length;
+            while ((length = fis.read(bytes)) >=0){
+                zos.write(bytes, 0, length);
+            }
+            zos.close();
+            fis.close();
+            fos.close();
+
+        } catch (IOException ex) {
+            System.err.println("I/O error: " + ex);
+        }
+
     }
 
 }

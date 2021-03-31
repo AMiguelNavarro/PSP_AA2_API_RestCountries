@@ -26,8 +26,8 @@
                   <Font size="14.0" />
                </font>
             </Text>
-            <ListView fx:id="lvAllCountries" layoutX="24.0" layoutY="179.0" onMouseClicked="#getCountryListViewAll" prefHeight="452.0" prefWidth="257.0" />
-            <Text layoutX="24.0" layoutY="150.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-text-alignment: center;" text="TODOS LOS PAÍSES" wrappingWidth="257.0">
+            <ListView fx:id="lvAllCountries" layoutX="24.0" layoutY="226.0" onMouseClicked="#getCountryListViewAll" prefHeight="405.0" prefWidth="257.0" />
+            <Text layoutX="24.0" layoutY="211.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-text-alignment: center;" text="TODOS LOS PAÍSES" wrappingWidth="257.0">
                <font>
                   <Font name="System Bold" size="22.0" />
                </font>
@@ -76,6 +76,8 @@
             </Text>
             <Label fx:id="lbRegionSelected" layoutX="743.0" layoutY="205.0" prefHeight="17.0" prefWidth="150.0" />
             <ComboBox fx:id="cbRegions" layoutX="661.0" layoutY="145.0" prefWidth="150.0" />
+            <Button fx:id="btExport" layoutX="207.0" layoutY="143.0" mnemonicParsing="false" onAction="#export" prefHeight="29.0" prefWidth="74.0" text="EXPORTAR" />
+            <ComboBox fx:id="cbExport" layoutX="52.0" layoutY="145.0" prefHeight="25.0" prefWidth="143.0" />
          </children>
       </AnchorPane>
    </children>
