@@ -46,7 +46,7 @@ public class AppController implements Initializable {
 
     private ObservableList<Country> listAllCountries;
     private ObservableList<Country> listCountriesFromRegion;
-    private String[] listRegions = new String[] {Constants.REGION_AFRICA, Constants.REGION_AMERICAS, Constants.REGION_ASIA, Constants.REGION_EUROPE, Constants.REGION_OCEANIA};
+    private ObservableList<String> regionObservableListComboBox;
     private String[] listExportOptions = new String[] {Constants.CSV, Constants.ZIP};
     private Country countrySelected;
     private File file;
@@ -66,7 +66,8 @@ public class AppController implements Initializable {
         listCountriesFromRegion = FXCollections.observableArrayList();
         lvAllFromRegion.setItems(listCountriesFromRegion);
 
-        cbRegions.setItems(FXCollections.observableArrayList(listRegions));
+        regionObservableListComboBox = FXCollections.observableArrayList();
+        loadComboBoxRegions();
         cbRegions.setValue(Constants.DEFAULT_REGION);
 
         cbExport.setItems(FXCollections.observableArrayList(listExportOptions));
@@ -152,7 +153,7 @@ public class AppController implements Initializable {
         piCountryFromRegion.setProgress(-1);
 
         String region = cbRegions.getSelectionModel().getSelectedItem();
-        if (region == null || region.equals(Constants.DEFAULT_REGION)) {
+        if (region == null || region.isEmpty() || region.isBlank() || region.equals(Constants.DEFAULT_REGION)) {
             Alerts.showErrorAlert("Debes seleccionar un continente");
             visibleProgressIndicator(false);
             return;
@@ -179,6 +180,12 @@ public class AppController implements Initializable {
     }
 
 
+    /**
+     * Exporta los datos en CSV o formato ZIP
+     * @param event
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
     @FXML
     public void export(Event event) throws ExecutionException, InterruptedException {
 
@@ -320,6 +327,10 @@ public class AppController implements Initializable {
     }
 
 
+    /**
+     * Exporta a CSV los datos
+     * @return Devuelve un objeto File
+     */
     private File exportCSV() {
         File file = null;
         try {
@@ -349,6 +360,10 @@ public class AppController implements Initializable {
 
     }
 
+    /**
+     * Convierte un archivo a formato ZIP
+     * @param file
+     */
     private void exportZIP(File file) {
 
         try {
@@ -371,6 +386,34 @@ public class AppController implements Initializable {
         } catch (IOException ex) {
             System.err.println("I/O error: " + ex);
         }
+
+    }
+
+
+    /**
+     * Carga las regiones de la API dentro del comboBox de continentes de forma automática
+     */
+    private void loadComboBoxRegions() {
+
+        cbRegions.setItems(regionObservableListComboBox);
+        apiService.getAllCountries()
+                .flatMap(Observable::from)
+                .distinct(Country::getRegion)
+                .doOnCompleted(() -> {
+                    System.out.println("Se cargan las regiones");
+                    visibleProgressIndicator(false);
+                })
+                .doOnError(throwable -> System.out.println("ERROR: " + throwable))
+                .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
+                .subscribe(country -> {
+                    Platform.runLater(() -> {
+                        if (country.getRegion().equals("") || country.getRegion().isEmpty() || country.getRegion() == null) {
+                            country.setRegion(Constants.DEFAULT_REGION);
+                        }
+                        regionObservableListComboBox.add(country.getRegion());
+                        System.out.println(country.getRegion() + " añadido a la lista");
+                    });
+                });
 
     }
 
