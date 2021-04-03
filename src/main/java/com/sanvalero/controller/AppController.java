@@ -51,6 +51,8 @@ public class AppController implements Initializable {
     private Country countrySelected;
     private File file;
 
+    //TODO cargar lista de regions con consulta a la API
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         apiService = new CountriesService();
