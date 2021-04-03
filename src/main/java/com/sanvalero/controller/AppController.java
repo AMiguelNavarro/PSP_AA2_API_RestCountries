@@ -5,6 +5,7 @@ import com.sanvalero.service.CountriesService;
 import com.sanvalero.utils.Alerts;
 import com.sanvalero.utils.Constants;
 import com.sanvalero.utils.R;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -47,6 +49,7 @@ public class AppController implements Initializable {
     private String[] listRegions = new String[] {Constants.REGION_AFRICA, Constants.REGION_AMERICAS, Constants.REGION_ASIA, Constants.REGION_EUROPE, Constants.REGION_OCEANIA};
     private String[] listExportOptions = new String[] {Constants.CSV, Constants.ZIP};
     private Country countrySelected;
+    private File file;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -163,31 +166,43 @@ public class AppController implements Initializable {
                 })
                 .doOnError(throwable -> System.out.println("ERROR: " + throwable))
                 .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
-                .subscribe(country -> listCountriesFromRegion.add(country));
+                .subscribe(country -> {
+                    Platform.runLater(() -> {
+                        listCountriesFromRegion.add(country);
+                    });
+                });
 
 
     }
 
 
     @FXML
-    public void export(Event event) {
+    public void export(Event event) throws ExecutionException, InterruptedException {
 
         String exportType = cbExport.getSelectionModel().getSelectedItem();
 
+        // Exportar como CSV
         if (exportType.equals(Constants.CSV)) {
-//            CompletableFuture.runAsync(this::exportCSV)
-//            .whenComplete((string, throwable) -> System.out.println("OK"));
+
             if (exportCSV() != null) {
                 Alerts.showInfoAlert("Se ha exportado el archivo CSV correctamente");
             }
+
         }
 
+        // Exportar como CSV y comprimir en ZIP
         if (exportType.equals(Constants.ZIP)) {
-            CompletableFuture.supplyAsync(this::exportCSV).thenAccept(this::exportZIP);
 
-//            File file = exportCSV();
-//            exportZIP(file);
-
+            file = exportCSV();
+            CompletableFuture.supplyAsync(() -> file.getAbsolutePath().concat(".zip"))
+                    .thenAccept(System.out::println)
+                    .whenComplete((unused, throwable) -> {
+                        System.out.println("Archivo .zip generado en: " + file.getAbsolutePath().concat(".zip"));
+                        Platform.runLater(() -> {
+                            exportZIP(file);
+                            Alerts.showInfoAlert("Archivo .zip generado correctamente");
+                        });
+                    }).get();
 
         }
 
