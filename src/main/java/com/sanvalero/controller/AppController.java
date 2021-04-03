@@ -23,6 +23,8 @@ import rx.Observable;
 import rx.schedulers.Schedulers;
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -383,8 +385,11 @@ public class AppController implements Initializable {
             fis.close();
             fos.close();
 
+            // Se borra el archivo csv para evitar duplicidades
+            Files.delete(Path.of(file.getAbsolutePath().concat(".csv")));
+
         } catch (IOException ex) {
-            System.err.println("I/O error: " + ex);
+            Alerts.showErrorAlert("Error al exportar en formato ZIP");
         }
 
     }
