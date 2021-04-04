@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import rx.Observable;
+import rx.Subscription;
 import rx.schedulers.Schedulers;
 import java.io.*;
 import java.net.URL;
@@ -31,6 +32,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -49,6 +51,7 @@ public class AppController implements Initializable {
     private ObservableList<Country> listAllCountries;
     private ObservableList<Country> listCountriesFromRegion;
     private ObservableList<String> regionObservableListComboBox;
+    private ObservableList<Country> listFilterByName;
     private String[] listExportOptions = new String[] {Constants.CSV, Constants.ZIP};
     private Country countrySelected;
     private File file;
@@ -59,6 +62,9 @@ public class AppController implements Initializable {
         apiService = new CountriesService();
 
         visibleProgressIndicator(false);
+
+        listFilterByName = FXCollections.observableArrayList();
+        lvByName.setItems(listFilterByName);
 
         listAllCountries = FXCollections.observableArrayList();
         lvAllCountries.setItems(listAllCountries);
@@ -85,28 +91,42 @@ public class AppController implements Initializable {
      */
     @FXML
     public void findByName(Event event) {
-        String name = tfName.getText();
+        lvByName.getItems().clear();
+        listFilterByName.clear();
 
-        if (name.isEmpty() || name.isBlank()) {
-            lvByName.getItems().clear();
-            Alerts.showErrorAlert("Debes escribir un nombre de país");
-            return;
-        }
+        try {
 
-        lbNameSearched.setText(name);
+            int number = Integer.parseInt(tfName.getText());
 
-        List<Country> listFilterByName = new ArrayList<>();
-        for(Country country : listAllCountries) {
-            if (country.getName().contains(name)) {
-                listFilterByName.add(country);
+            if (tfName == null) {
+                lvByName.getItems().clear();
+                Alerts.showErrorAlert("Debes introducir una cantidad");
+                tfName.requestFocus();
+                return;
             }
-        }
-        lvByName.setItems(FXCollections.observableList(listFilterByName));
 
-        if (listFilterByName.isEmpty()) {
-            Alerts.showInfoAlert("No hay ningún país con las letras: " + name);
+            apiService.getAllCountries()
+                    .flatMap(Observable::from)
+                    // Se filtran los datos para encontrar los paises con más población de la indicada
+                    .filter(country -> country.getPopulation() > number)
+                    .doOnCompleted(() -> {
+                        System.out.println("filtrado por país con más población que: " + number + " realizado con éxito");
+                    })
+                    .doOnError(throwable -> System.out.println("error al buscar los paises"))
+                    .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
+                    .subscribe(country -> {
+                        Platform.runLater(() -> {
+                            listFilterByName.add(country);
+                            System.out.println("Añadido el país: " + country.getName() + " con " + country.getPopulation() + " habitantes");
+                        });
+                    });
+
+        } catch (NumberFormatException e) {
+            Alerts.showErrorAlert("Introduce un formato de número entero correcto");
         }
+
     }
+    // TODO mostrar datos en un tableView para poner Name + Population. CAMBIAR NOMBRE Y TESXTOS EN SCENE BUILDER
 
 
     /**
