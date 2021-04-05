@@ -14,7 +14,7 @@ import java.util.ResourceBundle;
 public class DescriptionController implements Initializable {
 
     public WebView wbFlagImage = new WebView();
-    public Label lbName, lbCapital, lbRegion;
+    public Label lbName, lbCapital, lbRegion, lbPopulation;
     public Button btIncrease, btReduce;
 
     private final Country country;
@@ -26,6 +26,7 @@ public class DescriptionController implements Initializable {
         lbName.setText(country.getName());
         lbCapital.setText(country.getCapital());
         lbRegion.setText(country.getRegion());
+        lbPopulation.setText(String.valueOf(country.getPopulation()));
         wbFlagImage.getEngine().load(country.getFlag());
         wbFlagImage.setZoom(DEFAULT_ZOOM);
     }

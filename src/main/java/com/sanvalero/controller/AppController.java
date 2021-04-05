@@ -15,36 +15,37 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import rx.Observable;
-import rx.Subscription;
 import rx.schedulers.Schedulers;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 
 public class AppController implements Initializable {
 
-    public Button btFindByName, btViewDescription, btRegions, btExport;
-    public TextField tfName, tfNameResult, tfCapitalResult;
-    public ListView<Country> lvAllCountries, lvByName, lvAllFromRegion;
-    public Label lbNameSearched, lbRegionSelected;
-    public ProgressIndicator piCountryFromRegion;
+    public Button btFindByPopulation, btViewDescription, btRegions, btExport;
+    public TextField tfPopulation, tfNameResult, tfCapitalResult;
+    public ListView<Country> lvAllCountries, lvAllFromRegion;
+    public Label lbPopulation, lbRegionSelected;
+    public ProgressIndicator piCountryFromRegion, piPopulation;
     public ComboBox<String> cbRegions, cbExport;
+    public TableView tvByPopulation;
+
 
     private CountriesService apiService;
 
@@ -61,10 +62,11 @@ public class AppController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         apiService = new CountriesService();
 
-        visibleProgressIndicator(false);
+        visibleProgressIndicatorRegion(false);
+        visibleProgressIndicatorPopulation(false);
 
         listFilterByName = FXCollections.observableArrayList();
-        lvByName.setItems(listFilterByName);
+        tvByPopulation.setItems(listFilterByName);
 
         listAllCountries = FXCollections.observableArrayList();
         lvAllCountries.setItems(listAllCountries);
@@ -79,6 +81,8 @@ public class AppController implements Initializable {
 
         cbExport.setItems(FXCollections.observableArrayList(listExportOptions));
         cbExport.setValue(Constants.CSV);
+
+        fixColumns();
     }
 
 
@@ -90,43 +94,46 @@ public class AppController implements Initializable {
      * @param event
      */
     @FXML
-    public void findByName(Event event) {
-        lvByName.getItems().clear();
+    public void findByPopulation(Event event) {
+        tvByPopulation.getItems().clear();
         listFilterByName.clear();
+        visibleProgressIndicatorPopulation(true);
+        piPopulation.setProgress(-1);
 
         try {
 
-            int number = Integer.parseInt(tfName.getText());
+            int number = Integer.parseInt(tfPopulation.getText());
 
-            if (tfName == null) {
-                lvByName.getItems().clear();
-                Alerts.showErrorAlert("Debes introducir una cantidad");
-                tfName.requestFocus();
-                return;
-            }
+            lbPopulation.setText(String.valueOf(number));
 
             apiService.getAllCountries()
                     .flatMap(Observable::from)
                     // Se filtran los datos para encontrar los paises con más población de la indicada
                     .filter(country -> country.getPopulation() > number)
+                    //Ordena de menor a mayor los países por población
+                    .sorted((a,b) -> Integer.compare(a.getPopulation(), b.getPopulation()))
                     .doOnCompleted(() -> {
-                        System.out.println("filtrado por país con más población que: " + number + " realizado con éxito");
+                        visibleProgressIndicatorPopulation(false);
                     })
-                    .doOnError(throwable -> System.out.println("error al buscar los paises"))
+                    .doOnError(throwable ->  {
+                        visibleProgressIndicatorPopulation(false);
+                    })
                     .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
                     .subscribe(country -> {
                         Platform.runLater(() -> {
                             listFilterByName.add(country);
-                            System.out.println("Añadido el país: " + country.getName() + " con " + country.getPopulation() + " habitantes");
+                            //System.out.println("Añadido el país: " + country.getName() + " con " + country.getPopulation() + " habitantes");
                         });
                     });
 
+
         } catch (NumberFormatException e) {
             Alerts.showErrorAlert("Introduce un formato de número entero correcto");
+            visibleProgressIndicatorPopulation(false);
+            tfPopulation.requestFocus();
         }
 
     }
-    // TODO mostrar datos en un tableView para poner Name + Population. CAMBIAR NOMBRE Y TESXTOS EN SCENE BUILDER
 
 
     /**
@@ -170,13 +177,13 @@ public class AppController implements Initializable {
     public void findAllFromRegion(Event event) {
 
         lvAllFromRegion.getItems().clear();
-        visibleProgressIndicator(true);
+        visibleProgressIndicatorRegion(true);
         piCountryFromRegion.setProgress(-1);
 
         String region = cbRegions.getSelectionModel().getSelectedItem();
         if (region == null || region.isEmpty() || region.isBlank() || region.equals(Constants.DEFAULT_REGION)) {
             Alerts.showErrorAlert("Debes seleccionar un continente");
-            visibleProgressIndicator(false);
+            visibleProgressIndicatorRegion(false);
             return;
         }
 
@@ -187,7 +194,7 @@ public class AppController implements Initializable {
                 .flatMap(Observable::from)
                 .doOnCompleted(() -> {
                     System.out.println("Listado descargado");
-                    visibleProgressIndicator(false);
+                    visibleProgressIndicatorRegion(false);
                 })
                 .doOnError(throwable -> System.out.println("ERROR: " + throwable))
                 .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
@@ -281,8 +288,8 @@ public class AppController implements Initializable {
      * @param event
      */
     @FXML
-    public void getCountryListViewByName(Event event) {
-        countrySelected = lvByName.getSelectionModel().getSelectedItem();
+    public void getCountryTableViewByPopulation(Event event) {
+        countrySelected = (Country) tvByPopulation.getSelectionModel().getSelectedItem();
 
         if (!validateSelectionItem()) {
             return;
@@ -324,11 +331,19 @@ public class AppController implements Initializable {
 
 
     /**
-     * Oculta el progressIndicator
+     * Oculta el progressIndicator de region
      * @param visible
      */
-    private void visibleProgressIndicator(boolean visible) {
+    private void visibleProgressIndicatorRegion(boolean visible) {
         piCountryFromRegion.setVisible(visible);
+    }
+
+    /**
+     * Oculta el progressIndicator de population
+     * @param visible
+     */
+    private void visibleProgressIndicatorPopulation(boolean visible) {
+        piPopulation.setVisible(visible);
     }
 
 
@@ -425,7 +440,7 @@ public class AppController implements Initializable {
                 .distinct(Country::getRegion)
                 .doOnCompleted(() -> {
                     System.out.println("Se cargan las regiones");
-                    visibleProgressIndicator(false);
+                    visibleProgressIndicatorRegion(false);
                 })
                 .doOnError(throwable -> System.out.println("ERROR: " + throwable))
                 .subscribeOn(Schedulers.from(Executors.newCachedThreadPool()))
@@ -438,6 +453,26 @@ public class AppController implements Initializable {
                         System.out.println(country.getRegion() + " añadido a la lista");
                     });
                 });
+
+    }
+
+
+    /**
+     * Establece la columnas del table view y ajusta su ancho
+     */
+    private void fixColumns() {
+        Field[] fields = Country.class.getDeclaredFields();
+        for(Field field : fields) {
+            if (field.getName().equals("subregion") || field.getName().equals("flag") || field.getName().equals("region") || field.getName().equals("capital")) {
+                continue;
+            }
+
+            TableColumn<Country, String> column = new TableColumn<>(field.getName());
+            column.setCellValueFactory(new PropertyValueFactory<>(field.getName()));
+            tvByPopulation.getColumns().add(column);
+        }
+
+        tvByPopulation.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
     }
 

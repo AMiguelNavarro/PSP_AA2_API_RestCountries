@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
@@ -33,15 +34,14 @@
                </font>
             </Text>
             <Separator layoutX="307.0" layoutY="134.0" orientation="VERTICAL" prefHeight="495.0" prefWidth="8.0" />
-            <Button fx:id="btFindByName" layoutX="531.0" layoutY="172.0" mnemonicParsing="false" onAction="#findByName" prefHeight="25.0" prefWidth="65.0" text="BUSCAR" />
-            <ListView fx:id="lvByName" layoutX="339.0" layoutY="226.0" onMouseClicked="#getCountryListViewByName" prefHeight="158.0" prefWidth="257.0" />
-            <Text layoutX="339.0" layoutY="217.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Países con nombre: " wrappingWidth="128.0">
+            <Button fx:id="btFindByPopulation" layoutX="531.0" layoutY="172.0" mnemonicParsing="false" onAction="#findByPopulation" prefHeight="25.0" prefWidth="65.0" text="BUSCAR" />
+            <Text layoutX="339.0" layoutY="217.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Población &gt; que:" wrappingWidth="128.0">
                <font>
                   <Font size="14.0" />
                </font>
             </Text>
-            <TextField fx:id="tfName" layoutX="339.0" layoutY="172.0" prefHeight="25.0" prefWidth="165.0" />
-            <Text layoutX="339.0" layoutY="154.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Buscar país por nombre" wrappingWidth="232.939453125">
+            <TextField fx:id="tfPopulation" layoutX="339.0" layoutY="172.0" prefHeight="25.0" prefWidth="165.0" />
+            <Text layoutX="339.0" layoutY="154.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Búsqueda de país por población" wrappingWidth="232.939453125">
                <font>
                   <Font size="14.0" />
                </font>
@@ -57,7 +57,7 @@
             <TextField fx:id="tfNameResult" layoutX="385.0" layoutY="464.0" prefHeight="25.0" prefWidth="165.0" />
             <TextField fx:id="tfCapitalResult" layoutX="386.0" layoutY="527.0" prefHeight="25.0" prefWidth="165.0" />
             <Button fx:id="btViewDescription" layoutX="425.0" layoutY="572.0" mnemonicParsing="false" onAction="#viewDescription" prefHeight="50.0" prefWidth="95.0" text="VER FICHA" />
-            <Label fx:id="lbNameSearched" layoutX="468.0" layoutY="203.0" prefHeight="17.0" prefWidth="128.0" />
+            <Label fx:id="lbPopulation" layoutX="453.0" layoutY="203.0" prefHeight="18.0" prefWidth="143.0" />
             <Label layoutX="375.0" layoutY="402.0" prefHeight="27.0" prefWidth="194.0" text="PAÍS SELECCIONADO" textAlignment="CENTER">
                <font>
                   <Font name="System Bold" size="18.0" />
@@ -78,6 +78,8 @@
             <ComboBox fx:id="cbRegions" layoutX="661.0" layoutY="145.0" prefWidth="150.0" />
             <Button fx:id="btExport" layoutX="207.0" layoutY="143.0" mnemonicParsing="false" onAction="#export" prefHeight="29.0" prefWidth="74.0" text="EXPORTAR" />
             <ComboBox fx:id="cbExport" layoutX="52.0" layoutY="145.0" prefHeight="25.0" prefWidth="143.0" />
+            <ProgressIndicator fx:id="piPopulation" layoutX="560.0" layoutY="135.0" prefHeight="27.0" prefWidth="36.0" progress="0.0" />
+            <TableView fx:id="tvByPopulation" layoutX="339.0" layoutY="226.0" onMouseClicked="#getCountryTableViewByPopulation" prefHeight="157.0" prefWidth="257.0" />
          </children>
       </AnchorPane>
    </children>
